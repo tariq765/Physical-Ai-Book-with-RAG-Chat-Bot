@@ -1,0 +1,18 @@
+# Backend local data
+backend/venv/
+backend/.env
+backend/local_qdrant/
+backend/fastembed_cache/
+
+# Root level caches
+fastembed_cache/
+local_qdrant/
+
+# Node dependencies
+book/node_modules/
+book/build/
+book/.docusaurus/
+
+# OS
+.DS_Store
+Thumbs.db
