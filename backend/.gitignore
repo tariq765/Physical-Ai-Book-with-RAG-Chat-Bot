@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Qdrant local storage
+local_qdrant/
+
+# FastEmbed cache
+fastembed_cache/
+
+# OS
+.DS_Store

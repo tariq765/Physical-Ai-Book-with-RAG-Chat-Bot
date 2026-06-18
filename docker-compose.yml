@@ -1,0 +1,30 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fastapi_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - QDRANT_PATH=/app/local_qdrant
+      - EMBEDDING_CACHE_DIR=/app/fastembed_cache
+    volumes:
+      - ./backend/local_qdrant:/app/local_qdrant
+      - ./backend/fastembed_cache:/app/fastembed_cache
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./book
+      dockerfile: Dockerfile
+    container_name: docusaurus_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - backend
+    restart: unless-stopped
