@@ -25,7 +25,7 @@ const config: Config = {
     locales: ['en'],
   },
 
-  // Clean and Empty Plugins: No more Webpack/process crashing issues here
+  // Bilkul saaf plugins list (No Webpack configs to cause crashes)
   plugins: [],
 
   presets: [
