@@ -31,23 +31,32 @@ def create_collection():
 def index_docs():
     docs_path = "D:/Physical ai book/book/docs/**/*.md"
     files = glob.glob(docs_path, recursive=True)
-    
+
     points = []
     idx = 1
     for file_path in files:
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
-            # Simple chunking by paragraph
-            chunks = [c.strip() for c in content.split('\n\n') if c.strip()]
-            for chunk in chunks:
-                vector = get_embeddings(chunk)
-                points.append(PointStruct(
-                    id=idx,
-                    vector=vector,
-                    payload={"text": chunk, "source": file_path}
-                ))
-                idx += 1
-    
+
+        # ---------- NEW: prefix & suffix chunks ----------
+        prefix = content[:200].strip()
+        suffix = content[-200:].strip()
+        extra_chunks = [c for c in (prefix, suffix) if c]   # keep non‑empty
+        # --------------------------------------------------
+
+        # Existing paragraph‑level chunking
+        chunks = [c.strip() for c in content.split('\n\n') if c.strip()]
+        # Insert the extra chunks at the beginning so they get low IDs (high priority)
+        chunks = extra_chunks + chunks
+        for chunk in chunks:
+            vector = get_embeddings(chunk)
+            points.append(PointStruct(
+                id=idx,
+                vector=vector,
+                payload={"text": chunk, "source": file_path}
+            ))
+            idx += 1
+
     if points:
         client.upsert(
             collection_name=COLLECTION_NAME,
