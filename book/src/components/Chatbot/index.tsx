@@ -22,9 +22,14 @@ export default function Chatbot() {
     setInput('');
     setLoading(true);
 
+    // Safe way to get API URL in Browser/Client-side without crashing
+    const baseUrl = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL 
+      ? process.env.NEXT_PUBLIC_API_URL 
+      : '';
+
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/chat`,
+        `${baseUrl}/chat`,
         {
           method: 'POST',
           headers: {
