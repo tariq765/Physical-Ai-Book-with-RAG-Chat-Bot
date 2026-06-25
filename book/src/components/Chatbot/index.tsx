@@ -22,10 +22,8 @@ export default function Chatbot() {
     setInput('');
     setLoading(true);
 
-    // Safe way to get API URL in Browser/Client-side without crashing
-    const baseUrl = typeof window !== 'undefined' && process.env.NEXT_PUBLIC_API_URL 
-      ? process.env.NEXT_PUBLIC_API_URL 
-      : '';
+    // Hardcoded Hugging Face URL to completely avoid "process is not defined" error
+    const baseUrl = 'https://tariq761-pjysical-ai-ragchatbot.hf.space';
 
     try {
       const response = await fetch(
