@@ -18,17 +18,45 @@ const config: Config = {
   url: 'https://physical-ai-book-with-rag-chat-bot.vercel.app',
   baseUrl: '/',
   organizationName: 'tariq765', // Usually your GitHub org/user name.
-  projectName: 'Physical-Ai-Book-with-RAG-Chat-Bot', // Usually your repo name. // Usually your repo name.
+  projectName: 'Physical-Ai-Book-with-RAG-Chat-Bot', // Usually your repo name.
 
   onBrokenLinks: 'throw',
 
   // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
+  // useful metadata like html lang.
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
   },
+
+  // Custom Plugin to fix "process is not defined" error in Browser
+  plugins: [
+    function processPolyfillPlugin() {
+      return {
+        name: 'process-polyfill-plugin',
+        configureWebpack(webpackConfig, isServer) {
+          if (!isServer) {
+            const webpack = require('webpack');
+            return {
+              plugins: [
+                new webpack.DefinePlugin({
+                  'process.env': JSON.stringify({}),
+                  'process.browser': true,
+                  'process.version': JSON.stringify(''),
+                }),
+              ],
+              resolve: {
+                fallback: {
+                  process: false,
+                },
+              },
+            };
+          }
+          return {};
+        },
+      };
+    },
+  ],
 
   presets: [
     [
@@ -36,8 +64,6 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/panaversity/physical-ai-book/tree/main/',
         },
@@ -50,7 +76,6 @@ const config: Config = {
   ],
 
   themeConfig: {
-    // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
       respectPrefersColorScheme: true,
