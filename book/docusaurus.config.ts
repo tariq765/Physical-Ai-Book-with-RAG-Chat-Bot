@@ -2,64 +2,29 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
-// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
-
 const config: Config = {
   title: 'Physical AI & Humanoid Robotics',
   tagline: 'Bridging the gap between the digital brain and the physical body.',
   favicon: 'img/favicon.ico',
 
-  // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
-    v4: true, // Improve compatibility with the upcoming Docusaurus v4
+    v4: true,
   },
 
-  // Set the production url of your site here
   url: 'https://physical-ai-book-with-rag-chat-bot.vercel.app',
   baseUrl: '/',
-  organizationName: 'tariq765', // Usually your GitHub org/user name.
-  projectName: 'Physical-Ai-Book-with-RAG-Chat-Bot', // Usually your repo name.
+  organizationName: 'tariq765',
+  projectName: 'Physical-Ai-Book-with-RAG-Chat-Bot',
 
   onBrokenLinks: 'throw',
 
-  // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang.
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
   },
 
-  // Powerful Webpack Polyfill Plugin to fix "process is not defined" error
-  plugins: [
-    function processPolyfillPlugin() {
-      return {
-        name: 'process-polyfill-plugin',
-        configureWebpack(webpackConfig, isServer) {
-          if (!isServer) {
-            const webpack = require('webpack');
-            return {
-              plugins: [
-                // Yeh automatically browser ke har file mein 'process' variable provide karega
-                new webpack.ProvidePlugin({
-                  process: 'process/browser',
-                }),
-                new webpack.DefinePlugin({
-                  'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL || ''),
-                  'process.env': JSON.stringify({}),
-                })
-              ],
-              resolve: {
-                fallback: {
-                  process: require.resolve('process/browser'),
-                },
-              },
-            };
-          }
-          return {};
-        },
-      };
-    },
-  ],
+  // 100% Clean: No breaking custom webpack plugins here
+  plugins: [],
 
   presets: [
     [
