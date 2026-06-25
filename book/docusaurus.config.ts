@@ -29,7 +29,7 @@ const config: Config = {
     locales: ['en'],
   },
 
-  // Custom Plugin to fix "process is not defined" error in Browser
+  // Powerful Webpack Polyfill Plugin to fix "process is not defined" error
   plugins: [
     function processPolyfillPlugin() {
       return {
@@ -39,15 +39,18 @@ const config: Config = {
             const webpack = require('webpack');
             return {
               plugins: [
-                new webpack.DefinePlugin({
-                  'process.env': JSON.stringify({}),
-                  'process.browser': true,
-                  'process.version': JSON.stringify(''),
+                // Yeh automatically browser ke har file mein 'process' variable provide karega
+                new webpack.ProvidePlugin({
+                  process: 'process/browser',
                 }),
+                new webpack.DefinePlugin({
+                  'process.env.NEXT_PUBLIC_API_URL': JSON.stringify(process.env.NEXT_PUBLIC_API_URL || ''),
+                  'process.env': JSON.stringify({}),
+                })
               ],
               resolve: {
                 fallback: {
-                  process: false,
+                  process: require.resolve('process/browser'),
                 },
               },
             };
