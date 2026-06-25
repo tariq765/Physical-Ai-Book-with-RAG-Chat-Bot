@@ -7,14 +7,16 @@ const config: Config = {
   tagline: 'Bridging the gap between the digital brain and the physical body.',
   favicon: 'img/favicon.ico',
 
+  // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
-    v4: true,
+    v4: true, // Improve compatibility with the upcoming Docusaurus v4
   },
 
+  // Set the production url of your site here
   url: 'https://physical-ai-book-with-rag-chat-bot.vercel.app',
   baseUrl: '/',
-  organizationName: 'tariq765',
-  projectName: 'Physical-Ai-Book-with-RAG-Chat-Bot',
+  organizationName: 'tariq765', // Usually your GitHub org/user name.
+  projectName: 'Physical-Ai-Book-with-RAG-Chat-Bot', // Usually your repo name.
 
   onBrokenLinks: 'throw',
 
@@ -23,7 +25,7 @@ const config: Config = {
     locales: ['en'],
   },
 
-  // 100% Clean: No breaking custom webpack plugins here
+  // Clean and Empty Plugins: No more Webpack/process crashing issues here
   plugins: [],
 
   presets: [
