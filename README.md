@@ -31,8 +31,7 @@ This project consists of a Physical AI textbook (frontend) and a RAG-powered cha
 
 2. **Activate the Virtual Environment:**
    - PowerShell: `./venv/Scripts/Activate.ps1`
-   - CMD: `./venv/Scripts/activate.bat`
-   - Bash/Mac: `source venv/bin/activate`
+   - CMD: `./venv/Scripts/activate.bat`   - Bash/Mac: `source venv/bin/activate`
 
 3. **Install Dependencies:**
    ```bash
@@ -70,3 +69,6 @@ This project consists of a Physical AI textbook (frontend) and a RAG-powered cha
 ## Development Notes
 
 - The backend uses a local Qdrant instance stored in `backend/local_qdrant`.
+
+
+ .\venv\Scripts\python.exe main.py  
