@@ -22,6 +22,10 @@ const config: Config = {
 
   onBrokenLinks: 'throw',
 
+  customFields: {
+    backendUrl: process.env.REACT_APP_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'https://tariq761-pjysical-ai-ragchatbot.hf.space',
+  },
+
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".

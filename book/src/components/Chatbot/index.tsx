@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import styles from './styles.module.css';
 
 export default function Chatbot() {
+  const { siteConfig } = useDocusaurusContext();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
@@ -20,8 +22,10 @@ export default function Chatbot() {
     setLoading(true);
 
     try {
+      const customBackendUrl = (siteConfig.customFields?.backendUrl as string) || '';
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
                          process.env.REACT_APP_BACKEND_URL || 
+                         customBackendUrl ||
                          'https://tariq761-pjysical-ai-ragchatbot.hf.space';
 
       const response = await fetch(`${backendUrl.replace(/\/$/, '')}/chat`, {
