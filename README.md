@@ -1,5 +1,5 @@
 ---
-title: Physical Ai Booke
+title: Physical AI Book
 emoji: 🏆
 colorFrom: gray
 colorTo: purple
@@ -7,68 +7,68 @@ sdk: docker
 pinned: false
 ---
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
-
 # Physical AI Book Project
 
-This project consists of a Physical AI textbook (frontend) and a RAG-powered chatbot (backend).
-
-## Project Structure
-
-- `backend/`: FastAPI server with Qdrant vector database and Groq LLM.
-- `book/`: Docusaurus-based frontend for the textbook.
+This project consists of a **Physical AI & Humanoid Robotics textbook (Frontend)** and a **RAG-powered Chatbot API (Backend)**.
 
 ---
 
-## Getting Started
+## 📁 Project Structure
 
-### 1. Backend Setup (FastAPI)
+- `backend/`: FastAPI server with local Qdrant Vector Database, FastEmbed (`BAAI/bge-small-en-v1.5`), and Groq LLM API.
+- `book/`: Docusaurus-based Frontend for the interactive textbook.
 
-1. **Navigate to the backend directory:**
+---
+
+## 🚀 How to Run Frontend & Backend
+
+### 1. ⚙️ Running the Backend (FastAPI)
+
+1. Open Terminal/PowerShell and navigate to the backend directory:
    ```powershell
    cd backend
    ```
 
-2. **Activate the Virtual Environment:**
-   - PowerShell: `./venv/Scripts/Activate.ps1`
-   - CMD: `./venv/Scripts/activate.bat`   - Bash/Mac: `source venv/bin/activate`
+2. Activate the Virtual Environment:
+   - **PowerShell:**
+     ```powershell
+     .\venv\Scripts\activate
+     ```
+   - **Command Prompt (CMD):**
+     ```cmd
+     .\venv\Scripts\activate.bat
+     ```
+   - **Bash / Mac / Linux:**
+     ```bash
+     source venv/bin/activate
+     ```
 
-3. **Install Dependencies:**
-   ```bash
-   pip install -r requirements.txt
+3. Run the Backend server using `uvicorn`:
+   ```powershell
+   uvicorn main:app --reload --port 8000
    ```
-
-4. **Run the Backend:**
-   ```bash
-   python main.py
-   ```
-   The backend will be available at: `http://localhost:8000`
+   > 📍 **Backend API URL:** `http://localhost:8000`
 
 ---
 
-### 2. Frontend Setup (Docusaurus)
+### 2. 💻 Running the Frontend (Docusaurus)
 
-1. **Navigate to the book directory:**
+1. Open a **new Terminal window** and navigate to the `book` directory:
    ```powershell
    cd book
    ```
 
-2. **Install Dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Run the Frontend:**
-   ```bash
+2. Start the Frontend development server:
+   ```powershell
    npm start
    ```
-   The textbook will be available at: `http://localhost:3000/physical-ai-book/`
+   *(Alternative command: `npm run start`)*
+
+   > 📍 **Frontend Website URL:** `http://localhost:3000`
 
 ---
 
-## Development Notes
+## 🛠️ Tech Stack & Requirements
 
-- The backend uses a local Qdrant instance stored in `backend/local_qdrant`.
-
-
- .\venv\Scripts\python.exe main.py  
+- **Backend:** Python 3.10+, FastAPI, Uvicorn, FastEmbed, Qdrant Client, Groq API (`llama-3.3-70b-versatile`).
+- **Frontend:** Node.js 20+, React, Docusaurus 3.

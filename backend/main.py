@@ -27,7 +27,14 @@ groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 # Use Local Qdrant for stability in this session
 QDRANT_PATH = os.getenv("QDRANT_PATH", "./local_qdrant")
 QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "physical_ai_book_local")
-client_q = QdrantClient(path=QDRANT_PATH)
+
+_client_q = None
+
+def get_qdrant_client():
+    global _client_q
+    if _client_q is None:
+        _client_q = QdrantClient(path=QDRANT_PATH)
+    return _client_q
 
 # Initialize Local Embeddings
 EMBEDDING_CACHE_DIR = os.getenv("EMBEDDING_CACHE_DIR", "./fastembed_cache")
@@ -51,6 +58,7 @@ async def chat(request: QueryRequest):
         query_vector = get_embeddings(request.query)
         
         # 2. Search Qdrant using query_points (Modern API)
+        client_q = get_qdrant_client()
         search_result = client_q.query_points(
             collection_name=QDRANT_COLLECTION,
             query=query_vector,
