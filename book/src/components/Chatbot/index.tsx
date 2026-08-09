@@ -33,10 +33,20 @@ export default function Chatbot() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: input }),
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server returned status ${response.status}: ${errorText}`);
+      }
+
       const data = await response.json();
       setMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Error: Could not connect to the backend.' }]);
+    } catch (error: any) {
+      console.error('Chatbot fetch error:', error);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: `Error: ${error.message || 'Could not connect to the backend.'}` 
+      }]);
     } finally {
       setLoading(false);
     }
