@@ -20,7 +20,11 @@ export default function Chatbot() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/chat', {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
+                         process.env.REACT_APP_BACKEND_URL || 
+                         'https://tariq761-pjysical-ai-ragchatbot.hf.space';
+
+      const response = await fetch(`${backendUrl.replace(/\/$/, '')}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: input }),
