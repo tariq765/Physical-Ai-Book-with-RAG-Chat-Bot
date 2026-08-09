@@ -23,10 +23,7 @@ export default function Chatbot() {
 
     try {
       const customBackendUrl = (siteConfig.customFields?.backendUrl as string) || '';
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 
-                         process.env.REACT_APP_BACKEND_URL || 
-                         customBackendUrl ||
-                         'https://tariq761-pjysical-ai-ragchatbot.hf.space';
+      const backendUrl = customBackendUrl || 'https://tariq761-pjysical-ai-ragchatbot.hf.space';
 
       const response = await fetch(`${backendUrl.replace(/\/$/, '')}/chat`, {
         method: 'POST',
