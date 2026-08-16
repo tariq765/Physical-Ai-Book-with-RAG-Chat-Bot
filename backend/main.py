@@ -58,11 +58,13 @@ _qdrant_client = None
 def get_qdrant_client() -> QdrantClient:
     global _qdrant_client
     if _qdrant_client is None:
-        url = (os.getenv("QDRANT_URL") or "").strip()
-        api_key = (os.getenv("QDRANT_API_KEY") or "").strip()
+        url = (os.getenv("QDRANT_URL") or "").strip() or None
+        api_key = (os.getenv("QDRANT_API_KEY") or "").strip() or None
+        print(f"[INFO] Initializing QdrantClient with URL: {url}, API_KEY present: {bool(api_key)} (len: {len(api_key) if api_key else 0})")
         _qdrant_client = QdrantClient(
             url=url,
             api_key=api_key,
+            check_compatibility=False,
         )
     return _qdrant_client
 
