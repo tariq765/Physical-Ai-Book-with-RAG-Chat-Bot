@@ -22,8 +22,10 @@ export default function Chatbot() {
     setLoading(true);
 
     try {
+      const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const defaultUrl = isLocalhost ? 'http://localhost:8000' : 'https://tariq761-pjysical-ai-ragchatbot.hf.space';
       const customBackendUrl = (siteConfig.customFields?.backendUrl as string) || '';
-      const backendUrl = customBackendUrl || 'https://tariq761-pjysical-ai-ragchatbot.hf.space';
+      const backendUrl = customBackendUrl || defaultUrl;
 
       const response = await fetch(`${backendUrl.replace(/\/$/, '')}/chat`, {
         method: 'POST',
