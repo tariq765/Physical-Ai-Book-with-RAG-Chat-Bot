@@ -46,7 +46,7 @@ _groq_client = None
 def get_groq_client() -> Groq:
     global _groq_client
     if _groq_client is None:
-        api_key = os.getenv("GROQ_API_KEY")
+        api_key = (os.getenv("GROQ_API_KEY") or "").strip()
         if not api_key:
             raise ValueError("GROQ_API_KEY environment variable is not set.")
         _groq_client = Groq(api_key=api_key)
@@ -58,8 +58,8 @@ _qdrant_client = None
 def get_qdrant_client() -> QdrantClient:
     global _qdrant_client
     if _qdrant_client is None:
-        url = os.getenv("QDRANT_URL")
-        api_key = os.getenv("QDRANT_API_KEY")
+        url = (os.getenv("QDRANT_URL") or "").strip()
+        api_key = (os.getenv("QDRANT_API_KEY") or "").strip()
         _qdrant_client = QdrantClient(
             url=url,
             api_key=api_key,
@@ -109,7 +109,7 @@ async def chat(request: QueryRequest):
         query_vector = get_embedding(request.query)
 
         # 2 ── Retrieve relevant chunks from Qdrant
-        collection_name = os.getenv("QDRANT_COLLECTION", "physical_ai_book_v2")
+        collection_name = (os.getenv("QDRANT_COLLECTION") or "physical_ai_book_v2").strip()
         qclient = get_qdrant_client()
         search_results = qclient.query_points(
             collection_name=collection_name,
