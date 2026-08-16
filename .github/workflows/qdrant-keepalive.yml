@@ -1,0 +1,14 @@
+name: Keep Qdrant Cloud Cluster Alive
+
+on:
+  schedule:
+    - cron: '0 6 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Qdrant Cloud Cluster
+        run: |
+          curl -f -s -X GET "https://f6ea615e-b139-4f92-90c2-53b639889a15.sa-east-1-0.aws.cloud.qdrant.io/collections" -H "api-key: eyJhbGciOiJIUzI2NiIsInR5cCI6IkpXVCJ9.eyJhY2NlcsIiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6YjEyNjg1OWEtZTBjLTQ0MTItODdhYWUtMDE3OGY4MjViNDE5In0.dPVobBZO05Czu-Rrx2QHM0zfMUNib4NsqAxPzXpGYPc"
