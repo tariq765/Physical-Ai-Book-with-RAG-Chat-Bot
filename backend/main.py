@@ -172,15 +172,38 @@ async def chat(request: QueryRequest):
         )
 
         gclient = get_groq_client()
-        completion = gclient.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": user_prompt},
-            ],
-            temperature=0.2,
-            max_tokens=1024,
-        )
+        candidate_models = [
+            os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+            "openai/gpt-oss-120b",
+            "qwen/qwen3.6-27b",
+            "openai/gpt-oss-20b",
+            "groq/compound-mini",
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+        ]
+        models_to_try = list(dict.fromkeys([m.strip() for m in candidate_models if m and m.strip()]))
+
+        completion = None
+        last_err = None
+        for model_name in models_to_try:
+            try:
+                completion = gclient.chat.completions.create(
+                    model=model_name,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user",   "content": user_prompt},
+                    ],
+                    temperature=0.2,
+                    max_tokens=1024,
+                )
+                if completion:
+                    break
+            except Exception as err:
+                last_err = err
+                print(f"[WARN] Groq model '{model_name}' failed: {err}. Trying next fallback...")
+
+        if completion is None:
+            raise last_err or Exception("All Groq model fallbacks failed.")
 
         answer = completion.choices[0].message.content
 
