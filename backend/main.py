@@ -92,9 +92,46 @@ class ChatResponse(BaseModel):
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
 
+@app.on_event("startup")
+def startup_check():
+    """Verify Qdrant collection is accessible on startup."""
+    try:
+        collection_name = (os.getenv("QDRANT_COLLECTION") or "physical_ai_book_v2").strip()
+        qclient = get_qdrant_client()
+        if qclient.collection_exists(collection_name):
+            info = qclient.get_collection(collection_name)
+            print(f"[STARTUP] Qdrant collection '{collection_name}' is {info.status} with {info.points_count} points.")
+        else:
+            print(f"[STARTUP][WARNING] Qdrant collection '{collection_name}' does NOT exist! "
+                  "You need to re-run index_local.py to recreate it.")
+    except Exception as e:
+        print(f"[STARTUP][ERROR] Could not connect to Qdrant: {e}")
+
+
 @app.get("/")
 def read_root():
     return {"message": "Physical AI Book RAG API (Local Mode) is running [OK]"}
+
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint — also keeps Qdrant cluster alive by querying it."""
+    try:
+        collection_name = (os.getenv("QDRANT_COLLECTION") or "physical_ai_book_v2").strip()
+        qclient = get_qdrant_client()
+        exists = qclient.collection_exists(collection_name)
+        if exists:
+            info = qclient.get_collection(collection_name)
+            return {
+                "status": "healthy",
+                "qdrant_collection": collection_name,
+                "qdrant_status": str(info.status),
+                "points_count": info.points_count,
+            }
+        else:
+            return {"status": "degraded", "error": f"Collection '{collection_name}' not found"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 @app.post("/chat", response_model=ChatResponse)

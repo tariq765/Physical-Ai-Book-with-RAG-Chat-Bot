@@ -2,13 +2,44 @@ name: Keep Qdrant Cloud Cluster Alive
 
 on:
   schedule:
-    - cron: '0 6 */2 * *'
-  workflow_dispatch:
+    # Run every 12 hours (twice a day) to prevent Qdrant Cloud free-tier deactivation
+    - cron: '0 */12 * * *'
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
   keep-alive:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Qdrant Cloud Cluster
+      - name: Ping Qdrant - List Collections
         run: |
-          curl -f -s -X GET "https://f6ea615e-b139-4f92-90c2-53b639889a15.sa-east-1-0.aws.cloud.qdrant.io/collections" -H "api-key: eyJhbGciOiJIUzI2NiIsInR5cCI6IkpXVCJ9.eyJhY2NlcsIiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6YjEyNjg1OWEtZTBjLTQ0MTItODdhYWUtMDE3OGY4MjViNDE5In0.dPVobBZO05Czu-Rrx2QHM0zfMUNib4NsqAxPzXpGYPc"
+          echo "=== Listing Qdrant Collections ==="
+          RESPONSE=$(curl -f -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X GET "${{ secrets.QDRANT_URL }}/collections" \
+            -H "api-key: ${{ secrets.QDRANT_API_KEY }}")
+          echo "$RESPONSE"
+
+      - name: Ping Qdrant - Collection Info
+        run: |
+          echo "=== Checking Collection: physical_ai_book_v2 ==="
+          RESPONSE=$(curl -f -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X GET "${{ secrets.QDRANT_URL }}/collections/physical_ai_book_v2" \
+            -H "api-key: ${{ secrets.QDRANT_API_KEY }}")
+          echo "$RESPONSE"
+
+      - name: Ping Qdrant - Scroll Points (Active Usage)
+        run: |
+          echo "=== Scrolling first 5 points to simulate active usage ==="
+          RESPONSE=$(curl -f -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST "${{ secrets.QDRANT_URL }}/collections/physical_ai_book_v2/points/scroll" \
+            -H "api-key: ${{ secrets.QDRANT_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"limit": 5, "with_payload": true, "with_vector": false}')
+          echo "$RESPONSE"
+
+      - name: Ping HuggingFace Space Backend
+        run: |
+          echo "=== Pinging HF Space Root ==="
+          curl -f -s "https://tariq761-pjysical-ai-ragchatbot.hf.space/" || echo "HF Space may be sleeping, that's OK"
+          echo ""
+          echo "=== Pinging HF Space /health (triggers Qdrant check from backend) ==="
+          curl -f -s "https://tariq761-pjysical-ai-ragchatbot.hf.space/health" || echo "HF Space health check unavailable"
