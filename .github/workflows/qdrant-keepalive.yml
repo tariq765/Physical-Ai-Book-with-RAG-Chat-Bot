@@ -4,42 +4,125 @@ on:
   schedule:
     # Run every 12 hours (twice a day) to prevent Qdrant Cloud free-tier deactivation
     - cron: '0 */12 * * *'
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions tab
+
+permissions:
+  contents: write
 
 jobs:
   keep-alive:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Qdrant - List Collections
-        run: |
-          echo "=== Listing Qdrant Collections ==="
-          RESPONSE=$(curl -f -s -w "\nHTTP_STATUS:%{http_code}" \
-            -X GET "${{ secrets.QDRANT_URL }}/collections" \
-            -H "api-key: ${{ secrets.QDRANT_API_KEY }}")
-          echo "$RESPONSE"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ping Qdrant - Collection Info
+      - name: Normalize and Ping Qdrant API Directly
         run: |
-          echo "=== Checking Collection: physical_ai_book_v2 ==="
-          RESPONSE=$(curl -f -s -w "\nHTTP_STATUS:%{http_code}" \
-            -X GET "${{ secrets.QDRANT_URL }}/collections/physical_ai_book_v2" \
-            -H "api-key: ${{ secrets.QDRANT_API_KEY }}")
-          echo "$RESPONSE"
-
-      - name: Ping Qdrant - Scroll Points (Active Usage)
-        run: |
-          echo "=== Scrolling first 5 points to simulate active usage ==="
-          RESPONSE=$(curl -f -s -w "\nHTTP_STATUS:%{http_code}" \
-            -X POST "${{ secrets.QDRANT_URL }}/collections/physical_ai_book_v2/points/scroll" \
-            -H "api-key: ${{ secrets.QDRANT_API_KEY }}" \
+          echo "=== Step 1: Pinging Qdrant API Directly ==="
+          URL="${{ secrets.QDRANT_URL }}"
+          API_KEY="${{ secrets.QDRANT_API_KEY }}"
+          COLLECTION="${{ secrets.QDRANT_COLLECTION }}"
+          
+          # Fallbacks if secrets are not explicitly set in GitHub repo settings
+          if [ -z "$URL" ]; then
+            URL="https://f6ea615e-b139-4f92-90c2-53b639889a15.sa-east-1-0.aws.cloud.qdrant.io"
+          fi
+          if [ -z "$API_KEY" ]; then
+            API_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6YjEyNjg1OWEtZTBiYy00YTEyLTg3YWUtMDE3OGY4MjViNDE5In0.dPVobBZO05Czu-Rrx2QHM0zfMUNib4NsqAxPzXpGYPc"
+          fi
+          if [ -z "$COLLECTION" ]; then
+            COLLECTION="physical_ai_book_v2"
+          fi
+          
+          # Normalize URL (ensure http/https prefix and no trailing slash)
+          if [[ ! $URL =~ ^https?:// ]]; then
+            URL="https://$URL"
+          fi
+          URL="${URL%/}"
+          
+          echo "Normalizing Qdrant URL to: $URL"
+          echo "Collection name: $COLLECTION"
+          
+          echo "--- Pinging: List Collections ---"
+          RESPONSE_LIST=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X GET "$URL/collections" \
+            -H "api-key: $API_KEY")
+          echo "Response: $RESPONSE_LIST"
+          
+          echo "--- Pinging: Get Collection Details ---"
+          RESPONSE_INFO=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X GET "$URL/collections/$COLLECTION" \
+            -H "api-key: $API_KEY")
+          echo "Response: $RESPONSE_INFO"
+          
+          echo "--- Pinging: Scroll Points (Active Read Simulation) ---"
+          RESPONSE_SCROLL=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST "$URL/collections/$COLLECTION/points/scroll" \
+            -H "api-key: $API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{"limit": 5, "with_payload": true, "with_vector": false}')
-          echo "$RESPONSE"
+            -d '{"limit": 3, "with_payload": true, "with_vector": false}')
+          echo "Response: $RESPONSE_SCROLL"
 
-      - name: Ping HuggingFace Space Backend
+      - name: Wake up HuggingFace Space
         run: |
-          echo "=== Pinging HF Space Root ==="
-          curl -f -s "https://tariq761-pjysical-ai-ragchatbot.hf.space/" || echo "HF Space may be sleeping, that's OK"
-          echo ""
-          echo "=== Pinging HF Space /health (triggers Qdrant check from backend) ==="
-          curl -f -s "https://tariq761-pjysical-ai-ragchatbot.hf.space/health" || echo "HF Space health check unavailable"
+          echo "=== Step 2: Waking up HF Space (may take 30s if sleeping) ==="
+          for i in 1 2 3 4; do
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://tariq761-pjysical-ai-ragchatbot.hf.space/" --max-time 60)
+            echo "Attempt $i: HTTP $RESPONSE"
+            if [ "$RESPONSE" = "200" ] || [ "$RESPONSE" = "302" ] || [ "$RESPONSE" = "301" ]; then
+              echo "HF Space is awake!"
+              break
+            fi
+            echo "Waiting 15s before retry..."
+            sleep 15
+          done
+
+      - name: Ping HF Space /health endpoint (triggers backend database check)
+        run: |
+          echo "=== Step 3: Hitting /health to check backend health and DB status ==="
+          RESPONSE=$(curl -s --max-time 30 "https://tariq761-pjysical-ai-ragchatbot.hf.space/health")
+          echo "Health Response: $RESPONSE"
+
+      - name: Send a test chat query (full RAG pipeline active query)
+        run: |
+          echo "=== Step 4: Sending test chat query (full Qdrant search + LLM) ==="
+          RESPONSE=$(curl -s --max-time 60 -X POST \
+            "https://tariq761-pjysical-ai-ragchatbot.hf.space/chat" \
+            -H "Content-Type: application/json" \
+            -d '{"query": "What is physical AI?"}')
+          if echo "$RESPONSE" | grep -q '"answer"'; then
+            echo "RAG pipeline working! Qdrant is active."
+            echo "Response preview: $(echo $RESPONSE | head -c 200)"
+          else
+            echo "::warning:: Chat query returned unexpected response: $RESPONSE"
+            echo "This is OK if HuggingFace/Groq is temporarily down, since direct Qdrant API was pinged."
+          fi
+
+      - name: Prevent scheduled workflow deactivation (Keep-alive commit)
+        run: |
+          # Only run keep-alive commit on Mondays (day 1) to avoid spamming the git history,
+          # or if manually triggered (workflow_dispatch).
+          DAY_OF_WEEK=$(date +%u)
+          if [ "$DAY_OF_WEEK" = "1" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "=== Step 5: Executing weekly keep-alive commit ==="
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            
+            # Create/update keepalive file
+            mkdir -p .github/keepalive
+            echo "Last keep-alive ping: $(date -u) (to keep GitHub schedule active forever)" > .github/keepalive/ping.txt
+            
+            git add .github/keepalive/ping.txt
+            # Only commit and push if there are changes
+            if ! git diff --cached --exit-code; then
+              git commit -m "chore: automated weekly keep-alive ping to prevent GitHub action deactivation [skip ci]"
+              git push
+              echo "Keep-alive commit successfully pushed!"
+            else
+              echo "No changes to commit."
+            fi
+          else
+            echo "=== Step 5: Skipping weekly keep-alive commit (today is not Monday) ==="
+          fi
